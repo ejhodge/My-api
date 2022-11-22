@@ -1,11 +1,10 @@
-const express = require("express");
+import express, { Request, Response } from "express";
+import { createItem, findItem, findAllItems, findItemsByQuery, deleteItem, updateItem, purchaseItem, ItemFilter } from '../controllers/itemController';
+import { createPermissionCheck } from "../middlewares/Auth-middleware";
+
 const itemRouter = express.Router();
-const { createItem, findItem, findAllItems, findItemsByQuery, deleteItem, updateItem, purchaseItem } = require('../controllers/itemController');
-const Item = require("../models/Item");
-const { createPermissionCheck } = require("../middlewares/Auth-middleware");
 
-
-itemRouter.post("/", createPermissionCheck(['create:item']), async (req, res) => {
+itemRouter.post("/", createPermissionCheck(['create:item']), async (req: Request, res: Response) => {
 	const newItem = await createItem({
             name: req.body.name,
             description: req.body.description,
@@ -15,16 +14,16 @@ itemRouter.post("/", createPermissionCheck(['create:item']), async (req, res) =>
     res.status(200).send(newItem)
 });
 
-itemRouter.get("/:id", createPermissionCheck(['read:item']), async (req, res, next) => {
+itemRouter.get("/:id", createPermissionCheck(['read:item']), async (req: Request, res: Response, next: Function) => {
 	try {
-		const getItem = await findItem({ _id: req.params.id })
+		const getItem = await findItem( req.params.id)
 		res.status(200).send(getItem)
 	} catch (error) {
 		return next(error);
 	}
 });
 
-itemRouter.get("/", createPermissionCheck(['read:allItems']), async (req, res, next) => {
+itemRouter.get("/", createPermissionCheck(['read:allItems']), async (req: Request, res: Response, next: Function) => {
 	try {
 		if(Object.keys(req.query).length === 0) {
 			const getAllItems = await findAllItems()
@@ -35,7 +34,7 @@ itemRouter.get("/", createPermissionCheck(['read:allItems']), async (req, res, n
 				maxPrice: req.query.maxPrice,
 				minQuantity: req.query.minQuantity,
 				maxQuantity: req.query.maxQuantity
-			})
+			} as ItemFilter)
 			res.status(200).send(getAllItemsByQuery)
 		}
 	} catch (error) {
@@ -44,7 +43,7 @@ itemRouter.get("/", createPermissionCheck(['read:allItems']), async (req, res, n
 	}
 });
 
-itemRouter.patch("/:id", createPermissionCheck(['update:item']), async (req, res, next) => {
+itemRouter.patch("/:id", createPermissionCheck(['update:item']), async (req: Request, res: Response, next: Function) => {
 	try {
 		const updatedItem = await updateItem(req.params.id, req.body)
 		res.status(200).send(updatedItem)
@@ -54,16 +53,16 @@ itemRouter.patch("/:id", createPermissionCheck(['update:item']), async (req, res
 
 });
 
-itemRouter.delete("/:id", createPermissionCheck(['delete:item']), async (req, res, next) => {
+itemRouter.delete("/:id", createPermissionCheck(['delete:item']), async (req: Request, res: Response, next: Function) => {
 	try {
-		const removeItem = await deleteItem({ id: req.params.id })
+		const removeItem = await deleteItem( req.params.id)
 		res.status(204).send(removeItem)
 	} catch (error) {
 		return next(error)
 	}
 });
 
-itemRouter.post("/:id/purchase", createPermissionCheck(['create:purchase']), async (req, res, next) => {
+itemRouter.post("/:id/purchase", createPermissionCheck(['create:purchase']), async (req: Request, res: Response, next: Function) => {
 	try {
 		const newPurchase = await purchaseItem(
 			req.params.id,
@@ -77,4 +76,4 @@ itemRouter.post("/:id/purchase", createPermissionCheck(['create:purchase']), asy
 	}
 });
 
-module.exports = { itemRouter: itemRouter };
+export default itemRouter;

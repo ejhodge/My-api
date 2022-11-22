@@ -1,4 +1,5 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
+
 const Schema = mongoose.Schema;
 
 const purchaseSchema = new Schema ({
@@ -9,4 +10,4 @@ const purchaseSchema = new Schema ({
     quantity: { type: Number, default: 0, required: true }
 });
 
-module.exports = mongoose.model('Purchase', purchaseSchema, 'purchases');
+export default mongoose.model('Purchase', purchaseSchema, 'purchases');
