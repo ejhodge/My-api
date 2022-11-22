@@ -1,11 +1,21 @@
-const { del } = require('express/lib/application');
-const req = require('express/lib/request');
-const Item = require('../models/Item');
-const { remove } = require('../models/User');
+import Item from '../models/Item';
+import { createPurchase } from './purchaseController';
 
-const { createPurchase } = require('./purchaseController');
+interface Item {
+    name: string;
+    description?: string;
+    price: number;
+    quantity: number;
+};
 
-const createItem = async (newItemData) => {
+export interface ItemFilter {
+    minPrice?: number;
+    maxPrice?: number;
+    minQuantity?: number;
+    maxQuantity?: number;
+};
+
+export const createItem = async (newItemData: Item) => {
     const newItem = new Item({
         name: newItemData.name,
         description: newItemData.description,
@@ -16,14 +26,14 @@ const createItem = async (newItemData) => {
     return newItem;
 }
 
-const findItem = async (itemId) => {
+export const findItem = async (itemId: string) => {
     const getItem = await Item.findOne({
         _id: itemId
     });
     return getItem;
 };
 
-const findAllItems = async () => {
+export const findAllItems = async () => {
     const getAllItem = await Item.find();
     return getAllItem;
 };
@@ -38,7 +48,7 @@ const findAllItems = async () => {
  * @return {object[]} an array of items that match the filters provided
  * 
  */
-const findItemsByQuery = async (filter) => {
+export const findItemsByQuery = async (filter: ItemFilter) => {
     const queryFilter = {
         price: {
             $gte: 0,
@@ -70,21 +80,26 @@ const findItemsByQuery = async (filter) => {
     return foundItems
 }
 
-const updateItem = async (itemId, updates) => {
-    const filter = { _id: itemId}
+export const updateItem = async (itemId: string, updates: Partial<Item>) => {
+    const filter = { _id: itemId }
     const updatedItem = await Item.findOneAndUpdate(filter, updates, {new: true});
     return updatedItem;
 };
 
-const deleteItem = (deletedItem) => {
+export const deleteItem = (itemId: string) => {
     const removeItem = Item.deleteOne({
-        _id: deletedItem.id
+        _id: itemId
     });
     return removeItem;
 };
 
-const purchaseItem = async(itemId, userId, description = '', quantity) => {
+export const purchaseItem = async(itemId: string, userId: string, description: string = '', quantity: number) => {
     const foundItem = await findItem(itemId);
+
+    if(!foundItem) {
+        throw new Error(`PurchaseItem Error: Item with ${itemId}`);
+    }
+
     if  (foundItem.quantity >= quantity) {
         const newQuantity = foundItem.quantity - quantity;
         const updatedItem = await updateItem(itemId, {quantity: newQuantity});
@@ -99,6 +114,4 @@ const purchaseItem = async(itemId, userId, description = '', quantity) => {
     } else {
         throw new Error("Not enough inventory to fullfil purchase")
     }
-}
-
-module.exports = { createItem, findItem, findAllItems, findItemsByQuery, updateItem, deleteItem, purchaseItem }
+};

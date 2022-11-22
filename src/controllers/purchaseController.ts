@@ -1,6 +1,14 @@
-const Purchase = require('../models/Purchase');
+import Purchase from '../models/Purchase';
 
-const createPurchase = async (newPurchaseData) => {
+interface ItemPurchase {
+    userId: string;
+    itemId: string;
+    description?: string;
+    total: number;
+    quantity: number;
+};
+
+export const createPurchase = async (newPurchaseData: ItemPurchase) => {
     const newPurchase = new Purchase({
         userId: newPurchaseData.userId,
         itemId: newPurchaseData.itemId,
@@ -12,11 +20,9 @@ const createPurchase = async (newPurchaseData) => {
     return newPurchase;
 };
 
-const findAllUsersPurchases = async (userId) => {
+export const findAllUsersPurchases = async (userId: string) => {
         const getAllPurchases = await Purchase.find({
             userId: userId
         });
         return getAllPurchases;
 }
-
-module.exports = { createPurchase, findAllUsersPurchases }
